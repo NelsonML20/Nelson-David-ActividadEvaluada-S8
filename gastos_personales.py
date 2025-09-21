@@ -1,78 +1,98 @@
-#Importamos las librerias necesarias de PyQt5
-from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QMessageBox)
+# Importamos las librerías necesarias de PyQt5
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QPushButton, QVBoxLayout, QLabel,
+    QLineEdit, QMessageBox, QListWidget
+)
 from PyQt5.QtGui import QIcon
 import sys
 
 # Creamos la aplicación principal de PyQt5
 app = QApplication(sys.argv)
 
-#creamos la variable global, que guardará el total acumulado de gastos
-total = 0 
+# Variable global para el total acumulado de gastos
+total = 0
 
-#creamos la función que se va a ejecutar cada ves que se preciona el botón.
+# Función que se ejecuta al presionar el botón "Agregar gasto"
 def agregar_gastos():
-    global total    # para poder modificar la variable "total"
+    global total  # Permite modificar la variable global
+
+    descr = entrada_descr.text().strip()
+    monto_str = entrada_monto.text().strip()
+
+    # Validación de campos vacíos
+    if not descr or not monto_str:
+        QMessageBox.warning(ventana, "Campos vacíos", "Por favor, completa ambos campos.")
+        return
+
     try:
-        descr = entrada_descr.text()  # entrada de texto de la "descripción"
-        monto = float(entrada_monto.text()) # entrada de texto del monto y convertirlo a número
+        monto = float(monto_str)
+        total = total + monto  # Sumar al total
 
-        total = total + monto   # se suma el nuevo monto al total acumulado
-
-        # cuadro de información con los datos del total y gastos actualizado
+        # Mostrar información del gasto agregado
         QMessageBox.information(
             ventana,
-            "Gasta agregado",
+            "Gasto agregado",
             f"Descripción: {descr}\nMonto: ${monto:.2f}\n\nTotal acumulado: ${total:.2f}"
         )
-        
-        # linea de codigo, limpiando las entrada para que el usuario pueda escribir un nuevo gasto
+
+        # Agregar al historial
+        historial.addItem(f"{descr} - ${monto:.2f}")
+
+        # Limpiar entradas
         entrada_descr.clear()
         entrada_monto.clear()
 
-    #Linea de codigo por si el usuario escribe algo que no es número en el monto
     except ValueError:
-
+        # Mostrar advertencia si el monto no es numérico
         QMessageBox.warning(
             ventana,
-            "Error", "El monto deber ser un número válido."
+            "Error",
+            "El monto debe ser un número válido."
         )
 
-
-# Ventana principal, donde se crea la ventana, se la asigna un titulo a la ventana tamaño de ventana, icono de ventana
+# Crear la ventana principal
 ventana = QWidget()
 ventana.setWindowTitle("Control de Gastos Personales")
-ventana.setGeometry(300, 300, 400, 200)
-icono = QIcon("icono.png")
-ventana.setWindowIcon(icono)
+ventana.setGeometry(300, 300, 400, 300)
 
+# Icono de la ventana (opcional, asegúrate de tener el archivo)
+try:
+    icono = QIcon("icono.png")
+    ventana.setWindowIcon(icono)
+except:
+    pass  # Si el ícono no existe, no da error
 
-# organizador de widgets en vertical
+# Crear layout vertical
 layout = QVBoxLayout()
 
-# Widgets (elementos de la ventana)
-#texto fijo
+# Etiqueta principal
 txt = QLabel("Registro de gastos")
-# bloque de codigo para la descripción del gasto
+
+# Campo para la descripción del gasto
 entrada_descr = QLineEdit()
 entrada_descr.setPlaceholderText("Ingresar la descripción del gasto")
-# bloque de codigo para el monto del gasto
+
+# Campo para el monto del gasto
 entrada_monto = QLineEdit()
 entrada_monto.setPlaceholderText("Ingresar el monto del gasto")
 
-#bloque de codigo del botón y manda a llamar a la función agregar_gastos
+# Botón para agregar gasto
 btn = QPushButton("Agregar gasto")
 btn.clicked.connect(agregar_gastos)
 
-#Agregar los widgets al layout con un ciclo
-widgets = [txt,  entrada_descr, entrada_monto, btn]
+# Lista para mostrar el historial de gastos
+historial = QListWidget()
+
+# Agregar widgets al layout
+widgets = [txt, entrada_descr, entrada_monto, btn, historial]
 for w in widgets:
     layout.addWidget(w)
 
-#asignamos el layout a la ventana para que muestre los widgets en orden
+# Asignar el layout a la ventana
 ventana.setLayout(layout)
 
-#linea para mostrar la ventana
+# Mostrar ventana
 ventana.show()
 
-#Linea que mantiene la aplicación en ejecución hasta que el usuario la cierre
+# Ejecutar la aplicación
 sys.exit(app.exec_())
